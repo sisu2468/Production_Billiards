@@ -1,4 +1,4 @@
-#pyinstaller -F --paths=C:\Users\fjdhu\OneDrive\ドキュメント\Billiards_System\.venv\Lib\site-packages analysis_system.py --onefile --hide-console hide-early
+#pyinstaller -F --paths=C:\Users\sunbr\Documents\BilliardsSystem\billiards\.venv\Lib\site-packages index.py --onefile --hide-console hide-early
 import cv2
 import numpy as np
 import tkinter as tk
@@ -50,7 +50,7 @@ def return_origin():
     main_screen.pack_forget()
     exercise_button.pack(side=tk.LEFT, padx=10)
     rank_button.pack(side=tk.LEFT, padx=10)
-    # canvas.delete("all")
+    canvas.delete("all")
 
 
 # Function to generate a white image
@@ -424,6 +424,7 @@ def draw_parallel_line_if_needed(image, nearest_pocket_coordinates, ten_units_aw
             print("closet_point", real_ball_point)
             
             cv2.line(image, (int(collision_point[0]), int(collision_point[1])), (int(real_ball_point[0]), int(real_ball_point[1])), (255, 255, 255), 2)
+            return int(collision_point[0]), int(collision_point[1])
     elif line_status == 3:
         if balls_between > 0:
             return True
@@ -490,7 +491,7 @@ def find_projection_point (pocket_lines, ten_units_away_point, white_ball_coordi
 mouse_coordinates = (633, 350)
 # Function to analyze the image
 def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_status, mouse_coordinates):
-    # canvas.delete("all")
+    canvas.delete("all")
     global spin_angle, spin_mouse_coordinates
     # Define HSV ranges for each color
     color_ranges = {
@@ -509,17 +510,17 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
     
     # Define the trapezoid coordinates
     trapezoid_points = np.array([
-        [78, 86],  # Polaris
-        [1167, 95],  # Terra
-        [1174, 636], # Mars
-        [74, 638]    # Sirius
+        [102, 86],  # Polaris
+        [1180, 95],  # Terra
+        [1174, 623], # Mars
+        [107, 625]    # Sirius
     ], dtype=np.int32)
 
     # Draw lines between each pair of points to form the trapezoid
-    # cv2.line(image, tuple(trapezoid_points[0]), tuple(trapezoid_points[1]), (0, 255, 0), 2)  # Polaris to Terra
-    # cv2.line(image, tuple(trapezoid_points[1]), tuple(trapezoid_points[2]), (0, 255, 0), 2)  # Terra to Mars
-    # cv2.line(image, tuple(trapezoid_points[2]), tuple(trapezoid_points[3]), (0, 255, 0), 2)  # Mars to Sirius
-    # cv2.line(image, tuple(trapezoid_points[3]), tuple(trapezoid_points[0]), (0, 255, 0), 2)  # Sirius to Polaris
+    cv2.line(image, tuple(trapezoid_points[0]), tuple(trapezoid_points[1]), (0, 255, 0), 2)  # Polaris to Terra
+    cv2.line(image, tuple(trapezoid_points[1]), tuple(trapezoid_points[2]), (0, 255, 0), 2)  # Terra to Mars
+    cv2.line(image, tuple(trapezoid_points[2]), tuple(trapezoid_points[3]), (0, 255, 0), 2)  # Mars to Sirius
+    cv2.line(image, tuple(trapezoid_points[3]), tuple(trapezoid_points[0]), (0, 255, 0), 2)  # Sirius to Polaris
 
     # Define the mask for each color
     masks = {}
@@ -611,8 +612,8 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                 # cv2.putText(image, str(point), (int(x)-5, int(y)+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # Draw only the circle outline
                 if color == 'white':
                     white_ball_coordinates = point
-                # elif numbers_by_color[color] < first_ball_number:
-                elif numbers_by_color[color] < 7:
+                elif numbers_by_color[color] < first_ball_number:
+                # elif numbers_by_color[color] < 7:
                     # if color != "red":
                     first_ball_number = numbers_by_color[color]
                     first_coordinates = point
@@ -655,44 +656,44 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         ball_count = ball_count + 1
         # Draw the circle on the Canvas
         circle_radius = 15
-        # canvas.create_oval(x_center - circle_radius, y_center - circle_radius, 
-        #                 x_center + circle_radius, y_center + circle_radius, 
-        #                 fill=ball_color[ball_number], outline=ball_color[ball_number])
-        # canvas.create_text(x_center, y_center, text=str(ball_number), fill='white', width=10, font=("Arial", 12, "bold"))
+        canvas.create_oval(x_center - circle_radius, y_center - circle_radius, 
+                        x_center + circle_radius, y_center + circle_radius, 
+                        fill=ball_color[ball_number], outline=ball_color[ball_number])
+        canvas.create_text(x_center, y_center, text=str(ball_number), fill='white', width=10, font=("Arial", 12, "bold"))
     
     # Define pocket locations (assuming (x, y) coordinates)
     pocket_locations = {
-        "Polaris": (83, 97),
-        "Jupiter": (625, 92),
-        "Terra": (1162, 97),
-        "Sirius": (80, 635),
-        "Venus": (625, 635),
-        "Mars": (1165, 632),
+        "Polaris": (106, 99),
+        "Jupiter": (650, 92),
+        "Terra": (1167, 102),
+        "Sirius": (113, 620),
+        "Venus": (650, 620),
+        "Mars": (1165, 615),
     }
-    cv2.circle(image, (83, 92), 2, (255, 255, 255), 5)
-    cv2.circle(image, (625, 92), 2, (255, 255, 255), 5)
-    cv2.circle(image, (1162, 92), 2, (255, 255, 255), 5)
-    cv2.circle(image, (80, 635), 2, (255, 255, 255), 5)
-    cv2.circle(image, (625, 635), 2, (255, 255, 255), 5)
-    cv2.circle(image, (1165, 632), 2, (255, 255, 255), 5)
+    cv2.circle(image, (106, 99), 2, (255, 255, 255), 5)
+    cv2.circle(image, (650, 92), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1167, 102), 2, (255, 255, 255), 5)
+    cv2.circle(image, (113, 620), 2, (255, 255, 255), 5)
+    cv2.circle(image, (650, 620), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1165, 615), 2, (255, 255, 255), 5)
     # Display Pocket Text
-    cv2.putText(image, "P", (65, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
-    cv2.putText(image, "J", (620, 85), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, "P", (85, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, "J", (640, 85), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     cv2.putText(image, "T", (1185, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
-    cv2.putText(image, "S", (55, 650), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
-    cv2.putText(image, "V", (620, 665), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
-    cv2.putText(image, "M", (1180, 650), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, "S", (85, 650), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, "V", (640, 665), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, "M", (1180, 639), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     pocket_lines = [
-            [(85, 97), (1158, 105)],
-            [(1158, 105), (1166, 625)],
-            [(1166, 625), (75, 625)],
-            [(75, 625), (85, 97)],
+            [(113, 101), (1165, 108)],
+            [(1165, 108), (1162, 612)],
+            [(1162, 612), (118, 615)],
+            [(118, 615), (113, 101)],
     ]
 
-    cv2.line(image, (85, 97), (1158, 105), (0, 255, 0), 2)  # Polaris to Terra
-    cv2.line(image, (1158, 105), (1166, 625), (0, 255, 0), 2)  # Polaris to Terra
-    cv2.line(image, (1166, 625), (75, 625), (0, 255, 0), 2)  # Polaris to Terra
-    cv2.line(image, (75, 625), (85, 97), (0, 255, 0), 2)  # Polaris to Terra
+    # cv2.line(image, pocket_lines[0][0], pocket_lines[1][0], (0, 255, 0), 2)  # Polaris to Terra
+    # cv2.line(image, pocket_lines[1][0], pocket_lines[2][0], (0, 255, 0), 2)  # Polaris to Terra
+    # cv2.line(image, pocket_lines[2][0], pocket_lines[3][0], (0, 255, 0), 2)  # Polaris to Terra
+    # cv2.line(image, pocket_lines[3][0], pocket_lines[0][0], (0, 255, 0), 2)  # Polaris to Terra
     
     # cv2.circle(image, (916, 30), 2, (255, 255, 255), 5)
     # cv2.circle(image, (1055, 30), 2, (255, 255, 255), 5)
@@ -806,7 +807,7 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         first_cushion_point = None
         distrupt_ball1 = False
         distrupt_ball2 = False            
-        if white_angle <= 98.000:
+        if white_angle <= 90.000:
             distrupt_ball1 = draw_parallel_line_if_needed(image, first_coordinates, nearest_pocket_coordinates, text_number, 15, 4)
             if distrupt_ball1:
                 hit_ball_cushion = find_projection_point(pocket_lines, nearest_pocket_coordinates, first_coordinates, 1)
@@ -846,20 +847,20 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                 
                 cv2.circle(image, hit_ball_cushion[0], 10, (104, 120, 255), 2)
                 # cv2.line(image, first_coordinates, hit_ball_cushion[0], (255, 255, 255), 2)
-                cv2.line(image, first_coordinates, nearest_pocket_coordinates, (255, 255, 255), 2)
+                cv2.line(image, first_coordinates, nearest_pocket_coordinates, (255, 255, 255), 3)
                 cv2.line(image, white_ball_coordinates, ten_units_away_point, (255, 255, 255), 2)
             else :
-                cv2.line(image, nearest_pocket_coordinates, first_coordinates, (255, 255, 255), 2)
+                cv2.line(image, nearest_pocket_coordinates, first_coordinates, (255, 255, 255), 3)
                 cv2.line(image, white_ball_coordinates, ten_units_away_point, (255, 255, 255), 2)
         else :
             distrupt_ball1 = False
             distrupt_ball2 = False
             idx = -1
             first_cushion_points = find_projection_point(pocket_lines, ten_units_away_point, white_ball_coordinates, cur_ball_line)
-            # cv2.circle(image, first_cushion_points[0], 10, (104, 120, 255), 2)
-            # cv2.circle(image, first_cushion_points[1], 10, (104, 120, 255), 2)
-            # cv2.circle(image, first_cushion_points[2], 10, (104, 120, 255), 2)
-            # cv2.circle(image, first_cushion_points[3], 10, (104, 120, 255), 2)
+            cv2.circle(image, first_cushion_points[0], 10, (104, 120, 255), 2)
+            cv2.circle(image, first_cushion_points[1], 10, (104, 120, 255), 2)
+            cv2.circle(image, first_cushion_points[2], 10, (104, 120, 255), 2)
+            cv2.circle(image, first_cushion_points[3], 10, (104, 120, 255), 2)
 
             ten_cushion_length = 9999999.0000
             for i in range(len(first_cushion_points)):
@@ -911,11 +912,11 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                                 int(ten_units_away_point[1] - normalized_direction_vector[1]))
                 
                 cv2.circle(image, hit_ball_cushion[0], 10, (104, 120, 255), 2)
-                cv2.line(image, first_coordinates, hit_ball_cushion[0], (255, 255, 255), 2)
-                cv2.line(image, hit_ball_cushion[0], nearest_pocket_coordinates, (255, 255, 255), 2)
+                cv2.line(image, first_coordinates, hit_ball_cushion[0], (255, 255, 255), 3)
+                cv2.line(image, hit_ball_cushion[0], nearest_pocket_coordinates, (255, 255, 255), 3)
                 cv2.line(image, white_ball_coordinates, ten_units_away_point, (255, 255, 255), 2)
             else:
-                cv2.line(image, nearest_pocket_coordinates, ten_units_away_point, (255, 255, 255), 2)
+                cv2.line(image, nearest_pocket_coordinates, ten_units_away_point, (255, 255, 255), 3)
                 cv2.circle(image, (first_cushion_points[idx][0], first_cushion_points[idx][1]), 10, (104, 120, 255), 2)
                 cv2.line(image, white_ball_coordinates, (first_cushion_points[idx][0], first_cushion_points[idx][1]), (255, 255, 255), 2)
                 cv2.line(image, (first_cushion_points[idx][0], first_cushion_points[idx][1]), ten_units_away_point, (255, 255, 255), 2)            
@@ -969,13 +970,13 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                 image[right_y1:right_y2, right_x1:right_x2, c] = (alpha_s_strength * strength_right_bar[:, :, c] + alpha_l_strength * image[right_y1:right_y2, right_x1:right_x2, c])
 
             spin_distance = math.sqrt((mouse_coordinates[0] - spin_central_points[0]) ** 2 +
-                                    (mouse_coordinates[1] - spin_central_points[1]) ** 2)
+                                    (mouse_coordinates[1]  - spin_central_points[1]) ** 2)
             angle_Vector = (-pocket_to_new_vector[1], pocket_to_new_vector[0])
             
             if spin_distance <= 75.00:
                 if spin_central_points != mouse_coordinates:
                     spin_mouse_coordinates = mouse_coordinates
-                    cv2.circle(image, mouse_coordinates, 3, (255, 0, 255), 3)
+                    cv2.circle(image, (mouse_coordinates[0], mouse_coordinates[1] ), 3, (255, 0, 255), 3)
                     # Direction vectors
                     direction_vector_1 = (0, 75)  # (633, 350) to (633, 425)
                     direction_vector_2 = (mouse_coordinates[0] - spin_central_points[0], mouse_coordinates[1] - spin_central_points[1])
@@ -1018,7 +1019,9 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
             # cv2.rectangle(image, (933, 340), (933 + 1, 360), 0, 1)
             # cv2.putText(image, str(70), (324, 378), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # Draw only the circle outline
             # cv2.putText(image, str(70), (924, 378), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # Draw only the circle outline
+            # if mouse_coordinates[1] >= 287 and mouse_coordinates[1] <= 317:
             if mouse_coordinates[1] >= 335 and mouse_coordinates[1] <= 365:
+
                 if mouse_coordinates[0] >= 270 and mouse_coordinates[0] <= 496:
                     left_distance = mouse_coordinates[0] - left_central_points[0]
                     cv2.rectangle(image, (mouse_coordinates[0], 340), (mouse_coordinates[0]+1, 360), 0, 1)
@@ -1130,108 +1133,155 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         angle = angle_between_lines(ten_units_away_point, bisector_point, intersection_line[0])
         
         second_line_coordinates = angle_to_line(bisector_point, angle, 1400, line_status)
+        second_line_coordinates_comp = angle_to_line(bisector_point, angle, 500, line_status)
         # cv2.circle(image, bisector_point, 20, (104, 120, 255), 2)
-        
-        # Define the length of each dash and gap
-        dash_length = 2
-        gap_length = 2
-        
-        # Calculate the length of the line segment
-        line_length = math.sqrt((bisector_point[0] - ten_units_away_point[0])**2 + (bisector_point[1] - ten_units_away_point[1])**2)
-
-        # Calculate the number of dashes needed
-        num_dashes = int(line_length / (dash_length + gap_length))
-        print("num", num_dashes, line_length)
-        # Calculate the step size for drawing dashes
-        step_x = (bisector_point[0] - ten_units_away_point[0]) / num_dashes
-        step_y = (bisector_point[1] - ten_units_away_point[1]) / num_dashes
-        cv2.circle(image, bisector_point, 10, (255, 255, 100), 2)
-        # Draw the dotted line
-        current_point = ten_units_away_point
-        part_length = gap_length  # Consider the initial gap
-        for i in range(num_dashes):
-            start_point = (int(current_point[0]), int(current_point[1]))
-            end_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
-            part_length = part_length + math.sqrt((start_point[0] - end_point[0])**2 + (start_point[1] - end_point[1])**2) +  7  # Add the length of the current dash and gap
-            
-            # Check if the end point exceeds bisector_point
-            if part_length > line_length:            
-                break
-            cv2.line(image, start_point, end_point, (255, 255, 255), 2)
-            
-            current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)
-        
         # distrupt ball parallel line draw
-        draw_parallel_line_if_needed(image, ten_units_away_point, end_point, text_number, parellel_diatance, 2)
-        
-        
-        # Calculate distances between bisector_point and each pocket location
-        distances = {name: math.sqrt((bisector_point[0] - loc[0])**2 + (bisector_point[1] - loc[1])**2) for name, loc in pocket_locations.items()}
-        # Find the closest pocket location
-        closest_pocket = min(distances, key=distances.get)
-        # Check if the distance to the closest pocket location is within the specified range (e.g., 20 units)
-        if distances[closest_pocket] > 20:
+        white_distrupt = draw_parallel_line_if_needed(image, ten_units_away_point, bisector_point, text_number, 15, 3)
+        print('white', white_distrupt)
+        if not white_distrupt:
+            # Define the length of each dash and gap
+            dash_length = 2
+            gap_length = 2
             
-            # if second_coordinates:
-            #     second_line_intersection_point = None
-            #     for line in pocket_lines:
-            #         intersection = intersect_point((bisector_point, second_line_coordinates), line)
-            #         if intersection and intersection != bisector_point:
-            #             second_line_intersection_point = intersection
-                
-                # line1 = (second_coordinates, second_intersection_points)
-                # line2 = (bisector_point,second_line_coordinates)
-                # stable_intersect_point = second_intersect_point(line1, line2)
-                # if stable_intersect_point:
-                #     cv2.circle(image, stable_intersect_point, 10, (100, 150, 120), 2)
-                # else: stable_intersect_point = second_line_intersection_point
-                # # Get the dimensions of the foreground image
-                # foreground_height, foreground_width, _ = foreground_image.shape
-                # x, y = stable_intersect_point[0] - 99, stable_intersect_point[1] - 32
-                # print("stable_intersect_point", x, y)
-                
-                # if x < 0: x = 80
-                # elif x > 1050: x = 1000
-                # if y < 80: y = 80
-                # elif y > 550: y = 550
-                # # Define the region where you want to place the image
-                # y1, y2 = y, y + foreground_height
-                # x1, x2 = x, x + foreground_width
-
-                # # Blend the foreground image onto the background image
-                # alpha_s = foreground_image[:, :, 3] / 255.0
-                # alpha_l = 1.0 - alpha_s
-                
-                # for c in range(0, 3):
-                #     image[y1:y2, x1:x2, c] = (alpha_s * foreground_image[:, :, c] +
-                #                                         alpha_l * image[y1:y2, x1:x2, c])
-                # cv2.circle(image, second_coordinates, 10, (255, 255, 255), 2)  # Draw only the circle outline
-
-            line_length1 = math.sqrt((bisector_point[0] - second_line_coordinates[0])**2 + (bisector_point[1] - second_line_coordinates[1])**2)
+            # Calculate the length of the line segment
+            line_length = math.sqrt((bisector_point[0] - ten_units_away_point[0])**2 + (bisector_point[1] - ten_units_away_point[1])**2) - 15
 
             # Calculate the number of dashes needed
-            num_dashes = int(line_length1 / (dash_length + gap_length))
-
+            num_dashes = int(line_length / (dash_length + gap_length))
+            print("num", num_dashes, line_length)
             # Calculate the step size for drawing dashes
-            step_x = (second_line_coordinates[0] - bisector_point[0]) / num_dashes
-            step_y = (second_line_coordinates[1] - bisector_point[1]) / num_dashes
-
+            step_x = (bisector_point[0] - ten_units_away_point[0]) / num_dashes
+            step_y = (bisector_point[1] - ten_units_away_point[1]) / num_dashes
+            cv2.circle(image, bisector_point, 10, (255, 255, 100), 2)
             # Draw the dotted line
-            current_point = bisector_point
+            current_point = ten_units_away_point
             part_length = gap_length  # Consider the initial gap
             for i in range(num_dashes):
                 start_point = (int(current_point[0]), int(current_point[1]))
-                bisector_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
-                part_length = part_length + math.sqrt((start_point[0] - bisector_point[0])**2 + (start_point[1] - bisector_point[1])**2) +  7  # Add the length of the current dash and gap
-                
-                cv2.line(image, start_point, bisector_point, (255, 255, 255), 2)
+                end_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
+                part_length = part_length + math.sqrt((start_point[0] - end_point[0])**2 + (start_point[1] - end_point[1])**2) +  7  # Add the length of the current dash and gap
                 
                 # Check if the end point exceeds bisector_point
-                if part_length > line_length1:
+                if part_length > line_length:            
                     break
+                cv2.line(image, start_point, end_point, (255, 255, 255), 2)
                 
-                current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)
+                current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)        
+            
+            # Calculate distances between bisector_point and each pocket location
+            distances = {name: math.sqrt((bisector_point[0] - loc[0])**2 + (bisector_point[1] - loc[1])**2) for name, loc in pocket_locations.items()}
+            # Find the closest pocket location
+            closest_pocket = min(distances, key=distances.get)
+            # Check if the distance to the closest pocket location is within the specified range (e.g., 20 units)
+            if distances[closest_pocket] > 20:
+                intersection2_points = []
+                intersection2_line = []
+                line_status = 1
+                for line in pocket_lines:
+                    if intersection_line[0] != line:
+                        intersection = intersect_point((bisector_point, second_line_coordinates), line)
+                        if intersection:
+                            intersection2_points.append(intersection)
+                            intersection2_line.append(line)
+                            break
+                    line_status = line_status + 1
+                print("intersection", bisector_point, second_line_coordinates, intersection2_points, intersection2_line)
+                bisector2_point = intersection2_points[0]
+                # Calculate the angle between the line formed by ten_units_away_point and bisector_point
+                if bisector_point[1] != bisector2_point[1]:
+                    cv2.circle(image, bisector2_point, 10, (255, 255, 255), 2)  # Draw only the circle outline
+                    angle2 = angle_between_lines(bisector_point, bisector2_point, intersection2_line[0])
+                    third_line_coordinates = angle_to_line(bisector2_point, angle2, 1400, line_status)
+                    second_line_coordinates = bisector2_point
+                else:
+                    second_line_coordinates = second_line_coordinates_comp
+                # cv2.line(image, third_line_coordinates, bisector2_point, (255, 255, 255), 2)
+                print('bisector2', second_line_coordinates, bisector_point, bisector2_point)
+
+                line_length1 = math.sqrt((bisector_point[0] - second_line_coordinates[0])**2 + (bisector_point[1] - second_line_coordinates[1])**2) - 20
+
+                # Calculate the number of dashes needed
+                num_dashes = int(line_length1 / (dash_length + gap_length))
+
+                # Calculate the step size for drawing dashes
+                step_x = (second_line_coordinates[0] - bisector_point[0]) / num_dashes
+                step_y = (second_line_coordinates[1] - bisector_point[1]) / num_dashes
+
+                bisector_point_comp = bisector_point
+                # Draw the dotted line
+                current_point = bisector_point
+                part_length = gap_length  # Consider the initial gap
+                for i in range(num_dashes):
+                    start_point = (int(current_point[0]), int(current_point[1]))
+                    bisector_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
+                    part_length = part_length + math.sqrt((start_point[0] - bisector_point[0])**2 + (start_point[1] - bisector_point[1])**2) +  7  # Add the length of the current dash and gap
+                    
+                    cv2.line(image, start_point, bisector_point, (255, 255, 255), 2)
+                    # Check if the end point exceeds bisector_point
+                    if part_length > line_length1:
+                        break
+                    
+                    current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)
+                
+                if bisector_point_comp[1] != bisector2_point[1]:
+
+                    # Third cushion point
+                    line_length2 = 70
+                    line_length2_comp = math.sqrt((third_line_coordinates[0] - bisector2_point[0])**2 + (third_line_coordinates[1] - bisector2_point[1])**2)-8
+
+                    # Calculate the number of dashes needed
+                    num_dashes = int(line_length2_comp / (dash_length + gap_length))
+
+                    # Calculate the step size for drawing dashes
+                    step_x = (third_line_coordinates[0] - bisector2_point[0]) / num_dashes
+                    step_y = (third_line_coordinates[1] - bisector2_point[1]) / num_dashes
+
+                    # Draw the dotted line
+                    current_point = bisector2_point
+                    part_length = gap_length  # Consider the initial gap
+                    for i in range(num_dashes):
+                        start_point = (int(current_point[0]), int(current_point[1]))
+                        bisector2_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
+                        part_length = part_length + math.sqrt((start_point[0] - bisector2_point[0])**2 + (start_point[1] - bisector2_point[1])**2) +  7  # Add the length of the current dash and gap
                         
+                        cv2.line(image, start_point, bisector2_point, (255, 255, 255), 2)
+                        
+                        # Check if the end point exceeds bisector2_point
+                        if part_length > line_length2:
+                            break
+                        
+                        current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)
+        else:
+            collisionx, collisiony = draw_parallel_line_if_needed(image, ten_units_away_point, bisector_point, text_number, parellel_diatance, 2)
+            dash_length = 2
+            gap_length = 2
+            
+            # Calculate the length of the line segment
+            line_length = math.sqrt((collisionx - ten_units_away_point[0])**2 + (collisiony - ten_units_away_point[1])**2) - 15
+
+            # Calculate the number of dashes needed
+            num_dashes = int(line_length / (dash_length + gap_length))
+            print("num", num_dashes, line_length)
+            # Calculate the step size for drawing dashes
+            step_x = (collisionx - ten_units_away_point[0]) / num_dashes
+            step_y = (collisiony - ten_units_away_point[1]) / num_dashes
+            # Draw the dotted line
+            current_point = ten_units_away_point
+            part_length = gap_length  # Consider the initial gap
+            for i in range(num_dashes):
+                start_point = (int(current_point[0]), int(current_point[1]))
+                end_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
+                part_length = part_length + math.sqrt((start_point[0] - end_point[0])**2 + (start_point[1] - end_point[1])**2) +  7  # Add the length of the current dash and gap
+                
+                # Check if the end point exceeds bisector_point
+                if part_length > line_length:            
+                    break
+                cv2.line(image, start_point, end_point, (255, 255, 255), 2)
+                
+                current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)        
+            
+            # cv2.line(image, ten_units_away_point, (collisionx, collisiony), (61, 232, 23), 2)
+
         cv2.circle(image, ten_units_away_point, 10, (0, 0, 153), 2)
         
         cv2.circle(image, first_coordinates, 10, (0, 255, 255), 2)  # Draw only the circle outline
@@ -1260,7 +1310,7 @@ pocket_color = 'aaa'
 pocket_pos = pocket_color
 # Function to capture the current frame from the live video and analyze it
 def select_image_file():
-    global cap, video_running, select_count
+    global cap, video_running, select_count, pocket_pos
     if cap:
         # Capture the current frame from the live video
         ret, frame = cap.read()
@@ -1268,6 +1318,7 @@ def select_image_file():
         if select_count == 1:
             display_video_feed()
             select_count = 0
+            pocket_pos  = 'aaa'
         elif video_running:
             root.after_cancel(video_running)
             select_count = 1
@@ -1311,8 +1362,6 @@ def select_image_file():
 def select_pocket(pocket):
     global file_path, pocket_pos, cap, video_running
     pocket_pos = pocket
-    print("////////////////////////")
-    print(f"Selected pocket: {pocket_pos}")
     if cap:
         # Capture the current frame from the live video
         ret, frame = cap.read()
@@ -1342,41 +1391,59 @@ def select_pocket(pocket):
     #     analyze_image(image, hsv, pocket, 10, english_spin_status, mouse_coordinates)
         
 def input_distance():
-    global file_path
-    global pocket_pos
-    if file_path:
+    global file_path, pocket_pos, cap, video_running
+    if cap:
         distance = float(entry.get())  # Get the value entered in the entry widget
-        # Read the selected image file
-        image = cv2.imread(file_path)
-        # Resize the image
-        # image = cv2.resize(img, (1000, 550))
-        # Convert image to HSV
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        image = cv2.resize(image, (1180, 600))
-        # Display the image
-        # cv2.imshow("Selected Image", image)
-        # Analyze the image
-        analyze_image(image, hsv, pocket_pos, distance, english_spin_status, mouse_coordinates)
+        # Capture the current frame from the live video
+        ret, frame = cap.read()
+        if video_running:
+            root.after_cancel(video_running)
+
+        if ret:
+            # Resize the frame to 1180x700
+            # resized_frame = cv2.resize(frame, (1180, 700))
+            
+            # Convert the frame to HSV
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            analyze_image(frame, hsv, pocket_pos, distance, english_spin_status, mouse_coordinates)
 
 def show_hit_ball():
-    global file_path
-    global english_spin_status
+    global file_path, pocket_pos, cap, video_running, english_spin_status
     english_spin_status = not english_spin_status
-    if file_path:
-        image = cv2.imread(file_path)
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        image = cv2.resize(image, (1180, 600))
-        analyze_image(image, hsv, pocket_pos, 10, english_spin_status, mouse_coordinates)
-        
+    if cap:
+        # Capture the current frame from the live video
+        ret, frame = cap.read()
+        if video_running:
+            root.after_cancel(video_running)
+
+        if ret:
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            if english_spin_status:
+                # Resize the frame to 1180x700
+                # resized_frame = cv2.resize(frame, (1180, 700))
+                
+                # Convert the frame to HSV
+                analyze_image(frame, hsv, pocket_pos, 10, english_spin_status, mouse_coordinates)
+            else:
+                analyze_image(frame, hsv, pocket_pos, 10, False, mouse_coordinates)
+           
 def on_left_click(event):
-    global file_path
+    global file_path, pocket_pos, cap, video_running, english_spin_status
     x, y = event.x, event.y
     print(f"Left mouse button clicked at x={x}, y={y}")
-    if file_path:
-        image = cv2.imread(file_path)
-        image = cv2.resize(image, (1180, 600))
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        analyze_image(image, hsv, pocket_pos, 10, english_spin_status, (x, y))
+    if cap:
+        # Capture the current frame from the live video
+        ret, frame = cap.read()
+        if video_running:
+            root.after_cancel(video_running)
+
+        if ret and english_spin_status:
+            # Resize the frame to 1180x700
+            # resized_frame = cv2.resize(frame, (1180, 700))
+            
+            # Convert the frame to HSV
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            analyze_image(frame, hsv, pocket_pos, 10, english_spin_status, (x, y))
         
 # Create the main Tkinter window
 root = tk.Tk()
@@ -1403,21 +1470,21 @@ image_label.pack(side=tk.LEFT, padx=10, pady=10)
 
 display_video_feed()
 
-# hit_point_button = tk.Button(main_screen, text="表示", width=5, bg='#b8b894', font=("Semi-serif", 12, "bold"), command=show_hit_ball, compound='left')
-# hit_point_button.pack(pady=10)
+hit_point_button = tk.Button(main_screen, text="表示", width=5, bg='#b8b894', font=("Semi-serif", 12, "bold"), command=show_hit_ball, compound='left')
+hit_point_button.pack(pady=10)
 
-# label = tk.Label(main_screen, text="通り:", font=("Semi-serif", 15, "bold"))
-# label.pack(pady=5)
+label = tk.Label(main_screen, text="通り:", font=("Semi-serif", 15, "bold"))
+label.pack(pady=5)
 
-# entry = tk.Entry(main_screen, width=5, font=("Semi-serif", 15))
-# entry.pack(pady=5)
+entry = tk.Entry(main_screen, width=5, font=("Semi-serif", 15))
+entry.pack(pady=5)
 
-# # Bind the <Return> key event to the input_distance function
-# entry.bind("<Return>", lambda event: input_distance())
+# Bind the <Return> key event to the input_distance function
+entry.bind("<Return>", lambda event: input_distance())
 
 
-# canvas = tk.Canvas(main_screen, width=40, height=500, bg='#1a75ff')
-# canvas.pack(side=tk.RIGHT, padx=10, pady=10)
+canvas = tk.Canvas(main_screen, width=40, height=500, bg='#1a75ff')
+canvas.pack(side=tk.RIGHT, padx=10, pady=10)
 
 # Button to exercise to the secondary screen
 exercise_button = tk.Button(root, text="フリー練習モード", width=58, height=30, bg='#b8b894', font=("Semi-serif", 15, "bold"),  command=show_main_screen)
