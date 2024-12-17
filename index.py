@@ -488,6 +488,47 @@ def find_projection_point (pocket_lines, ten_units_away_point, white_ball_coordi
         idx += 1
     return first_cushion_points
 
+def calculate_targeted_bisector(white_ball_coordinates, ten_units_away_point, target_pocket_coordinates, scale_distance=1400):
+    # Calculate the vectors
+    ten_to_white_vector = (
+        white_ball_coordinates[0] - ten_units_away_point[0],
+        white_ball_coordinates[1] - ten_units_away_point[1],
+    )
+    ten_to_pocket_vector = (
+        target_pocket_coordinates[0] - ten_units_away_point[0],
+        target_pocket_coordinates[1] - ten_units_away_point[1],
+    )
+
+    # Normalize the vectors
+    def normalize(vector):
+        length = math.sqrt(vector[0]**2 + vector[1]**2)
+        if length == 0:
+            raise ValueError("Vector length is zero, cannot normalize.")
+        return (vector[0] / length, vector[1] / length)
+
+    normalized_white_vector = normalize(ten_to_white_vector)
+    normalized_pocket_vector = normalize(ten_to_pocket_vector)
+
+    # Ensure the bisector is aligned with the pocket vector (red trajectory)
+    dot_product = (
+        normalized_white_vector[0] * normalized_pocket_vector[0] +
+        normalized_white_vector[1] * normalized_pocket_vector[1]
+    )
+
+    if dot_product < 0:  # Invert the pocket vector if needed
+        normalized_pocket_vector = (
+            -normalized_pocket_vector[0],
+            -normalized_pocket_vector[1]
+        )
+
+    # Scale the bisector vector towards the target
+    bisector_point = (
+        int(ten_units_away_point[0] + scale_distance * normalized_pocket_vector[0]),
+        int(ten_units_away_point[1] + scale_distance * normalized_pocket_vector[1]),
+    )
+
+    return bisector_point
+
 mouse_coordinates = (633, 350)
 # Function to analyze the image
 def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_status, mouse_coordinates):
@@ -495,25 +536,25 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
     global spin_angle, spin_mouse_coordinates
     # Define HSV ranges for each color
     color_ranges = {
-        "yellow": ([11, 114, 150], [100, 255, 255], 80),
-        # "red": ([105, 200, 160], [179, 255, 255], 30),
+        "yellow": ([15, 113, 200], [100, 255, 255], 80),
+        "red": ([113, 134, 98], [179, 255, 255], 30),
         "green": ([40, 100, 60], [90, 255, 255], 10),
-        "white": ([0, 0, 196], [49, 69, 255], 50),
-        "blue": ([105, 80, 103], [128, 255, 255], 40),
+        "white": ([0, 0, 196], [117, 56, 255], 50),
+        "blue": ([108, 132, 178], [114, 200, 255], 20),
         "orange": ([5, 139, 210], [12, 255, 255], 40),
-        "purple": ([0, 58, 218], [9, 170, 255], 40),
+        "purple": ([117, 68, 159], [134, 255, 255], 40),
         "maroon": ([8, 102, 136], [13, 255, 219], 30),
-        "red": ([0, 170, 80], [1, 255, 255], 30),
+        # "red": ([0, 170, 80], [1, 255, 255], 30),
         "nineyellow": ([13, 79, 110], [62, 201, 255], 30),   #change
         "black": ([0, 0, 0], [179, 255, 60], 80),
     }
     
     # Define the trapezoid coordinates
     trapezoid_points = np.array([
-        [102, 86],  # Polaris
-        [1180, 95],  # Terra
-        [1174, 623], # Mars
-        [107, 625]    # Sirius
+        [100, 84],  # Polaris
+        [1170, 92],  # Terra
+        [1164, 614], # Mars
+        [104, 625]    # Sirius
     ], dtype=np.int32)
 
     # Draw lines between each pair of points to form the trapezoid
@@ -600,31 +641,24 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         if area > colorarea: 
             (x, y), _ = cv2.minEnclosingCircle(contour)
             point = (int(x), int(y))
-            close_to_existing_point = False
-            # Check if the new point is close to any existing point in check
-            # for stored_point in check:
-            #     if abs(point[0] - stored_point[0]) < 10 and abs(point[1] - stored_point[1]) < 10:
-            #         close_to_existing_point = True
-            #         break
-            if not close_to_existing_point:
-                check.append(point)
-                # cv2.circle(image, point, 1, (0, 0, 255), 2)  # Draw only the circle outline
-                # cv2.putText(image, str(point), (int(x)-5, int(y)+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # Draw only the circle outline
-                if color == 'white':
-                    white_ball_coordinates = point
-                elif numbers_by_color[color] < first_ball_number:
-                # elif numbers_by_color[color] < 7:
-                    # if color != "red":
-                    first_ball_number = numbers_by_color[color]
-                    first_coordinates = point
-                elif numbers_by_color[color] < second_ball_number:
-                    second_ball_number = numbers_by_color[color]
-                    second_coordinates = point
-
-                pocket_ball_number.append(numbers_by_color[color])
+            check.append(point)
+            # cv2.circle(image, point, 1, (0, 0, 255), 2)  # Draw only the circle outline
+            # cv2.putText(image, str(point), (int(x)-5, int(y)+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # Draw only the circle outline
+            if color == 'white':
+                white_ball_coordinates = point
+            elif numbers_by_color[color] < first_ball_number:
+            # elif numbers_by_color[color] < 7:
                 # if color != "red":
-                text_number.append((str(numbers_by_color[color]), point))
-                # cv2.putText(image, str(area), (int(x)-5, int(y)+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+                first_ball_number = numbers_by_color[color]
+                first_coordinates = point
+            elif numbers_by_color[color] < second_ball_number:
+                second_ball_number = numbers_by_color[color]
+                second_coordinates = point
+
+            pocket_ball_number.append(numbers_by_color[color])
+            # if color != "red":
+            text_number.append((str(numbers_by_color[color]), point))
+            # cv2.putText(image, str(area), (int(x)-5, int(y)+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
     print("text_number", text_number, "first_coordinates", first_coordinates)
     miss_ball_number = []
     i = 1
@@ -663,31 +697,31 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
     
     # Define pocket locations (assuming (x, y) coordinates)
     pocket_locations = {
-        "Polaris": (106, 99),
-        "Jupiter": (650, 92),
-        "Terra": (1167, 102),
-        "Sirius": (113, 620),
-        "Venus": (650, 620),
-        "Mars": (1165, 615),
+        "Polaris": (109, 97),
+        "Jupiter": (647, 92),
+        "Terra": (1164, 101),
+        "Sirius": (116, 619),
+        "Venus": (647, 618),
+        "Mars": (1162, 606),
     }
-    cv2.circle(image, (106, 99), 2, (255, 255, 255), 5)
-    cv2.circle(image, (650, 92), 2, (255, 255, 255), 5)
-    cv2.circle(image, (1167, 102), 2, (255, 255, 255), 5)
-    cv2.circle(image, (113, 620), 2, (255, 255, 255), 5)
-    cv2.circle(image, (650, 620), 2, (255, 255, 255), 5)
-    cv2.circle(image, (1165, 615), 2, (255, 255, 255), 5)
+    # cv2.circle(image, (109, 99), 2, (255, 255, 255), 5)
+    # cv2.circle(image, (650, 92), 2, (255, 255, 255), 5)
+    # cv2.circle(image, (1167, 102), 2, (255, 255, 255), 5)
+    # cv2.circle(image, (116, 619), 2, (255, 255, 255), 5)
+    # cv2.circle(image, (650, 620), 2, (255, 255, 255), 5)
+    # cv2.circle(image, (1165, 609), 2, (255, 255, 255), 5)
     # Display Pocket Text
     cv2.putText(image, "P", (85, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     cv2.putText(image, "J", (640, 85), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     cv2.putText(image, "T", (1185, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     cv2.putText(image, "S", (85, 650), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
-    cv2.putText(image, "V", (640, 665), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, "V", (640, 660), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     cv2.putText(image, "M", (1180, 639), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
     pocket_lines = [
-            [(113, 101), (1165, 108)],
-            [(1165, 108), (1162, 612)],
-            [(1162, 612), (118, 615)],
-            [(118, 615), (113, 101)],
+            [(107, 100), (1157, 104)],
+            [(1157, 104), (1154, 601)],
+            [(1154, 601), (118, 611)],
+            [(118, 611), (107, 100)],
     ]
 
     # cv2.line(image, pocket_lines[0][0], pocket_lines[1][0], (0, 255, 0), 2)  # Polaris to Terra
@@ -695,68 +729,37 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
     # cv2.line(image, pocket_lines[2][0], pocket_lines[3][0], (0, 255, 0), 2)  # Polaris to Terra
     # cv2.line(image, pocket_lines[3][0], pocket_lines[0][0], (0, 255, 0), 2)  # Polaris to Terra
     
-    # cv2.circle(image, (916, 30), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (1055, 30), 2, (255, 255, 255), 5)
+    cv2.circle(image, (237, 42), 2, (255, 255, 255), 5)
+    cv2.circle(image, (377, 42), 2, (255, 255, 255), 5)
+    cv2.circle(image, (515, 42), 2, (255, 255, 255), 5)
+    cv2.circle(image, (779, 44), 2, (255, 255, 255), 5)
+    cv2.circle(image, (918, 44), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1055, 44), 2, (255, 255, 255), 5)
     
-    # cv2.circle(image, (213, 672), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (355, 672), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (495, 672), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (775, 668), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (916, 665), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (1055, 665), 2, (255, 255, 255), 5)
+    cv2.circle(image, (239, 669), 2, (255, 255, 255), 5)
+    cv2.circle(image, (377, 667), 2, (255, 255, 255), 5)
+    cv2.circle(image, (514, 665), 2, (255, 255, 255), 5)
+    cv2.circle(image, (781, 662), 2, (255, 255, 255), 5)
+    cv2.circle(image, (916, 662), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1049, 662), 2, (255, 255, 255), 5)
     
-    # cv2.circle(image, (31, 211), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (33, 352), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (33, 494), 2, (255, 255, 255), 5)
+    cv2.circle(image, (62, 216), 2, (255, 255, 255), 5)
+    cv2.circle(image, (62, 356), 2, (255, 255, 255), 5)
+    cv2.circle(image, (62, 496), 2, (255, 255, 255), 5)
     
-    # cv2.circle(image, (1232, 208), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (1232, 347), 2, (255, 255, 255), 5)
-    # cv2.circle(image, (1232, 487), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1220, 220), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1220, 356), 2, (255, 255, 255), 5)
+    cv2.circle(image, (1220, 492), 2, (255, 255, 255), 5)
     
-    # nearest_second_pocket_distance = float('inf')  # Initialize with a large value
-    # nearest_second_pocket_coordinates = None
-    # if second_coordinates:
-    #     for pocket, coordinates in pocket_locations.items():
-    #         # Calculate the distance between the first coordinates and the current pocket coordinates
-    #         distance = math.sqrt((second_coordinates[0] - coordinates[0])**2 + (second_coordinates[1] - coordinates[1])**2)
-    #         if distance < nearest_second_pocket_distance:
-    #             nearest_second_pocket_distance = distance
-    #             nearest_second_pocket_coordinates = coordinates
-    #     # Calculate the direction vector from second_coordinates to nearest_second_pocket_coordinates
-    #     second_direction_vector = (nearest_second_pocket_coordinates[0] - second_coordinates[0], nearest_second_pocket_coordinates[1] - second_coordinates[1])
-    #     # Determine the start and end points for the line
-    #     start_point = (second_coordinates[0] - 1400 * second_direction_vector[0], second_coordinates[1] - 1400 * second_direction_vector[1])
-    #     end_point = (second_coordinates[0] + 1400 * second_direction_vector[0], second_coordinates[1] + 1400 * second_direction_vector[1])
-    #     line_length = 0.000000
-    #     for line in pocket_lines:
-    #         intersection = intersect_point((nearest_second_pocket_coordinates, start_point), line)
-    #         if intersection:
-    #             line_com_length = math.sqrt((intersection[0] - nearest_second_pocket_coordinates[0])**2 + (intersection[1] - nearest_second_pocket_coordinates[1])**2)
-    #             if line_length < line_com_length:
-    #                 line_length = line_com_length
-    #                 second_intersection_points = intersection
-    #     print("second_interse", second_intersection_points)
-    #     cv2.line(image, second_intersection_points, start_point, (255, 255, 255), 10)
-        
-    #     # Draw the infinite line passing through second_coordinates and nearest_second_pocket_coordinates
-    #     # cv2.line(image, nearest_second_pocket_coordinates, second_coordinates, (0, 150, 255), 2)
-        
-    #     # Calculate the central point between second_coordinates and second_intersection_points
-    #     central_point = (int((second_coordinates[0] + second_intersection_points[0]) / 2), 
-    #                     int((second_coordinates[1] + second_intersection_points[1]) / 2))
-    #     print("central_point", central_point)
-                
-    #     line_distance = math.sqrt((second_coordinates[0] - second_intersection_points[0])**2 + (second_coordinates[1] - second_intersection_points[1])**2)
-
     nearest_pocket_distance = float('inf')  # Initialize with a large value
     nearest_pocket_coordinates = None
+    comp_angle = 0.0000
     if first_coordinates:
         if pocket_name == 'aaa':
             for pocket, coordinates in pocket_locations.items():
-                # Calculate the distance between the first coordinates and the current pocket coordinates
-                distance = math.sqrt((first_coordinates[0] - coordinates[0])**2 + (first_coordinates[1] - coordinates[1])**2)
-                if distance < nearest_pocket_distance:
-                    nearest_pocket_distance = distance
+                auto_angle = angle_between_lines(white_ball_coordinates, first_coordinates, [coordinates, first_coordinates])
+                if auto_angle > comp_angle:
+                    comp_angle = auto_angle
                     nearest_pocket_coordinates = coordinates
         else :
             nearest_pocket_coordinates = pocket_locations[pocket_name]
@@ -775,10 +778,9 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         # Calculate the coordinates of a point 10 units away from first_coordinates along the direction vector
         ten_units_away_point = (int(first_coordinates[0] - 24.2 * normalized_direction_vector[0]), int(first_coordinates[1] - 24.2 * normalized_direction_vector[1]))
         # cv2.line(image, perpendicular_point, perpendicular_end_point, (0, 0, 255), 2)
-        print('white_ball_coordinates', white_ball_coordinates)
         white_direction_vector = (white_ball_coordinates[0] - ten_units_away_point[0], white_ball_coordinates[1] - ten_units_away_point[1])
-        white_start_point = (ten_units_away_point[0] - 1400 * white_direction_vector[0], ten_units_away_point[1] - 1400 * white_direction_vector[1])
-        white_end_point = (ten_units_away_point[0] + 1400 * white_direction_vector[0], ten_units_away_point[1] + 1400 * white_direction_vector[1])        
+        # white_start_point = (ten_units_away_point[0] - 1400 * white_direction_vector[0], ten_units_away_point[1] - 1400 * white_direction_vector[1])
+        # white_end_point = (ten_units_away_point[0] + 1400 * white_direction_vector[0], ten_units_away_point[1] + 1400 * white_direction_vector[1])        
         # cv2.line(image, white_start_point, ten_units_away_point, (150, 0, 255), 2)
         # cv2.line(image, ten_units_away_point, white_end_point, (150, 0, 255), 2)
         # cv2.circle(image, (first_cushion_points[idx][0], first_cushion_points[idx][1]), 10, (104, 120, 255), 2)
@@ -807,8 +809,9 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         first_cushion_point = None
         distrupt_ball1 = False
         distrupt_ball2 = False            
-        if white_angle <= 90.000:
+        if white_angle <= 93.000:
             distrupt_ball1 = draw_parallel_line_if_needed(image, first_coordinates, nearest_pocket_coordinates, text_number, 15, 4)
+            print("distruptbal1", distrupt_ball1)
             if distrupt_ball1:
                 hit_ball_cushion = find_projection_point(pocket_lines, nearest_pocket_coordinates, first_coordinates, 1)
                 # Calculate the direction vector from first_coordinates to nearest_pocket_coordinates
@@ -846,8 +849,8 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                                 int(ten_units_away_point[1] - normalized_direction_vector[1]))
                 
                 cv2.circle(image, hit_ball_cushion[0], 10, (104, 120, 255), 2)
-                # cv2.line(image, first_coordinates, hit_ball_cushion[0], (255, 255, 255), 2)
-                cv2.line(image, first_coordinates, nearest_pocket_coordinates, (255, 255, 255), 3)
+                cv2.line(image, first_coordinates, hit_ball_cushion[0], (255, 255, 255), 3)
+                cv2.line(image, hit_ball_cushion[0], nearest_pocket_coordinates, (255, 255, 255), 3)
                 cv2.line(image, white_ball_coordinates, ten_units_away_point, (255, 255, 255), 2)
             else :
                 cv2.line(image, nearest_pocket_coordinates, first_coordinates, (255, 255, 255), 3)
@@ -856,19 +859,25 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
             distrupt_ball1 = False
             distrupt_ball2 = False
             idx = -1
+            idx1 = -1
             first_cushion_points = find_projection_point(pocket_lines, ten_units_away_point, white_ball_coordinates, cur_ball_line)
-            cv2.circle(image, first_cushion_points[0], 10, (104, 120, 255), 2)
-            cv2.circle(image, first_cushion_points[1], 10, (104, 120, 255), 2)
-            cv2.circle(image, first_cushion_points[2], 10, (104, 120, 255), 2)
-            cv2.circle(image, first_cushion_points[3], 10, (104, 120, 255), 2)
+            # cv2.circle(image, first_cushion_points[0], 10, (104, 120, 255), 2)
+            # cv2.circle(image, first_cushion_points[1], 10, (104, 120, 255), 2)
+            # cv2.circle(image, first_cushion_points[2], 10, (104, 120, 255), 2)
+            # cv2.circle(image, first_cushion_points[3], 10, (104, 120, 255), 2)
 
             ten_cushion_length = 9999999.0000
+            compare_angle = 9999999.0000
             for i in range(len(first_cushion_points)):
                 distrupt_ball1 = draw_parallel_line_if_needed(image, white_ball_coordinates, (first_cushion_points[i][0], first_cushion_points[i][1]), text_number, 15, 3)
                 distrupt_ball2 = draw_parallel_line_if_needed(image, (first_cushion_points[i][0], first_cushion_points[i][1]), ten_units_away_point, text_number, 15, 3)
+                cushion_angle = angle_between_lines(first_cushion_points[i], ten_units_away_point, cur_ball_line)
+
                 between_length = math.sqrt((first_cushion_points[i][0] - ten_units_away_point[0])**2 + (first_cushion_points[i][1] - ten_units_away_point[1])**2)
-                if distrupt_ball1 == False and distrupt_ball2 == False and between_length < ten_cushion_length:
+                if distrupt_ball1 == False and distrupt_ball2 == False and between_length < ten_cushion_length and cushion_angle <= 90.000:
                     idx = i
+                if between_length < ten_cushion_length and cushion_angle <= 90.000 and cushion_angle < compare_angle:
+                    idx1 = i
                 distrupt_ball1 = False
                 distrupt_ball1 = False
 
@@ -914,7 +923,9 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                 cv2.circle(image, hit_ball_cushion[0], 10, (104, 120, 255), 2)
                 cv2.line(image, first_coordinates, hit_ball_cushion[0], (255, 255, 255), 3)
                 cv2.line(image, hit_ball_cushion[0], nearest_pocket_coordinates, (255, 255, 255), 3)
-                cv2.line(image, white_ball_coordinates, ten_units_away_point, (255, 255, 255), 2)
+                # cv2.line(image, white_ball_coordinates, ten_units_away_point, (255, 255, 255), 2)
+                cv2.line(image, white_ball_coordinates, (first_cushion_points[idx1][0], first_cushion_points[idx1][1]), (255, 255, 255), 2)
+                cv2.line(image, (first_cushion_points[idx1][0], first_cushion_points[idx1][1]), ten_units_away_point, (255, 255, 255), 2)            
             else:
                 cv2.line(image, nearest_pocket_coordinates, ten_units_away_point, (255, 255, 255), 3)
                 cv2.circle(image, (first_cushion_points[idx][0], first_cushion_points[idx][1]), 10, (104, 120, 255), 2)
@@ -1084,15 +1095,20 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
             # If the dot product is positive, the vectors point in the same direction, so invert the perpendicular vector
             normalized_perpendicular_vector = (-normalized_perpendicular_vector[0], -normalized_perpendicular_vector[1])
 
-        bisector_point = (int(ten_units_away_point[0] + 1400 * normalized_perpendicular_vector[0]), 
-                    int(ten_units_away_point[1] + 1400 * normalized_perpendicular_vector[1]))
-        
+        bisector_point = (int(ten_units_away_point[0] + 700 * normalized_perpendicular_vector[0]), 
+                    int(ten_units_away_point[1] + 700 * normalized_perpendicular_vector[1]))
+        # Calculate the trajectory point
+        bisector1_point = calculate_targeted_bisector(
+            white_ball_coordinates, ten_units_away_point, nearest_pocket_coordinates
+        )
+        print("bisector_point", bisector_point, bisector1_point)
+
         if first_cushion_point and distrupt_ball1 == False:
             second_cushion_angle = angle_between_lines(first_cushion_point, ten_units_away_point, (ten_units_away_point, bisector_point))
             print("second_cushion_angle", second_cushion_angle)
             if second_cushion_angle > 95:
-                bisector_point = (int(ten_units_away_point[0] - 1400 * normalized_perpendicular_vector[0]), 
-                    int(ten_units_away_point[1] - 1400 * normalized_perpendicular_vector[1]))
+                bisector_point = (int(ten_units_away_point[0] - 700 * normalized_perpendicular_vector[0]), 
+                    int(ten_units_away_point[1] - 700 * normalized_perpendicular_vector[1]))
         
         # # Calculate the direction vector from ten_units_away_point to white_end_point
         # vec_white = (white_end_point[0] - ten_units_away_point[0], white_end_point[1] - ten_units_away_point[1])
@@ -1121,6 +1137,8 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
         intersection_line = []
         line_status = 1
         print("intersection", bisector_point)
+        # if bisector_point[0] > 0 and bisector_point[1] > 0:
+
         for line in pocket_lines:
             intersection = intersect_point((ten_units_away_point, bisector_point), line)
             if intersection:
@@ -1173,6 +1191,7 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
             # Find the closest pocket location
             closest_pocket = min(distances, key=distances.get)
             # Check if the distance to the closest pocket location is within the specified range (e.g., 20 units)
+            print("distanse111", distances[closest_pocket])
             if distances[closest_pocket] > 20:
                 intersection2_points = []
                 intersection2_line = []
@@ -1196,13 +1215,13 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
                 else:
                     second_line_coordinates = second_line_coordinates_comp
                 # cv2.line(image, third_line_coordinates, bisector2_point, (255, 255, 255), 2)
-                print('bisector2', second_line_coordinates, bisector_point, bisector2_point)
+                print('bisector2', second_line_coordinates, bisector_point, bisector2_point, ten_units_away_point, first_coordinates)
 
-                line_length1 = math.sqrt((bisector_point[0] - second_line_coordinates[0])**2 + (bisector_point[1] - second_line_coordinates[1])**2) - 20
+                line_length1 = math.sqrt((bisector_point[0] - second_line_coordinates[0])**2 + (bisector_point[1] - second_line_coordinates[1])**2) - 25
 
                 # Calculate the number of dashes needed
                 num_dashes = int(line_length1 / (dash_length + gap_length))
-
+                print("aaaaaa", line_length1, bisector_point, bisector2_point)
                 # Calculate the step size for drawing dashes
                 step_x = (second_line_coordinates[0] - bisector_point[0]) / num_dashes
                 step_y = (second_line_coordinates[1] - bisector_point[1]) / num_dashes
@@ -1255,36 +1274,42 @@ def analyze_image(image, hsv, pocket_name, parellel_diatance, english_spin_statu
             collisionx, collisiony = draw_parallel_line_if_needed(image, ten_units_away_point, bisector_point, text_number, parellel_diatance, 2)
             dash_length = 2
             gap_length = 2
-            
-            # Calculate the length of the line segment
-            line_length = math.sqrt((collisionx - ten_units_away_point[0])**2 + (collisiony - ten_units_away_point[1])**2) - 15
+            distances = {name: math.sqrt((collisionx - loc[0])**2 + (collisiony - loc[1])**2) for name, loc in pocket_locations.items()}
+            # Find the closest pocket location
+            closest_pocket = min(distances, key=distances.get)
+            # Check if the distance to the closest pocket location is within the specified range (e.g., 20 units)
+            print("distanse111", distances[closest_pocket])
+            if distances[closest_pocket] > 20:
+                # Calculate the length of the line segment
+                line_length = math.sqrt((collisionx - ten_units_away_point[0])**2 + (collisiony - ten_units_away_point[1])**2) - 15
 
-            # Calculate the number of dashes needed
-            num_dashes = int(line_length / (dash_length + gap_length))
-            print("num", num_dashes, line_length)
-            # Calculate the step size for drawing dashes
-            step_x = (collisionx - ten_units_away_point[0]) / num_dashes
-            step_y = (collisiony - ten_units_away_point[1]) / num_dashes
-            # Draw the dotted line
-            current_point = ten_units_away_point
-            part_length = gap_length  # Consider the initial gap
-            for i in range(num_dashes):
-                start_point = (int(current_point[0]), int(current_point[1]))
-                end_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
-                part_length = part_length + math.sqrt((start_point[0] - end_point[0])**2 + (start_point[1] - end_point[1])**2) +  7  # Add the length of the current dash and gap
+                # Calculate the number of dashes needed
+                num_dashes = int(line_length / (dash_length + gap_length))
+                print("num", num_dashes, line_length)
+                # Calculate the step size for drawing dashes
+                step_x = (collisionx - ten_units_away_point[0]) / num_dashes
+                step_y = (collisiony - ten_units_away_point[1]) / num_dashes
+                # Draw the dotted line
+                current_point = ten_units_away_point
+                part_length = gap_length  # Consider the initial gap
+                for i in range(num_dashes):
+                    start_point = (int(current_point[0]), int(current_point[1]))
+                    end_point = (int(current_point[0] + dash_length * step_x), int(current_point[1] + dash_length * step_y))
+                    part_length = part_length + math.sqrt((start_point[0] - end_point[0])**2 + (start_point[1] - end_point[1])**2) +  7  # Add the length of the current dash and gap
+                    
+                    # Check if the end point exceeds bisector_point
+                    if part_length > line_length:            
+                        break
+                    cv2.line(image, start_point, end_point, (255, 255, 255), 2)
+                    
+                    current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)        
                 
-                # Check if the end point exceeds bisector_point
-                if part_length > line_length:            
-                    break
-                cv2.line(image, start_point, end_point, (255, 255, 255), 2)
-                
-                current_point = (current_point[0] + (dash_length + gap_length) * step_x, current_point[1] + (dash_length + gap_length) * step_y)        
-            
-            # cv2.line(image, ten_units_away_point, (collisionx, collisiony), (61, 232, 23), 2)
+                # cv2.line(image, ten_units_away_point, (collisionx, collisiony), (61, 232, 23), 2)
 
         cv2.circle(image, ten_units_away_point, 10, (0, 0, 153), 2)
         
         cv2.circle(image, first_coordinates, 10, (0, 255, 255), 2)  # Draw only the circle outline
+        # cv2.line(image, ten_units_away_point, bisector1_point, (255, 255, 255), 2)
         for text, point in text_number:
             cv2.putText(image, text, (point[0]-5, point[1]+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             
